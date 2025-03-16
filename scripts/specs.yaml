@@ -418,6 +418,15 @@ HeCBench:
         run_command: ("./main", "50000000", "1000")
         compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/llvm/bin/clang++", "-e",
           "HIP=yes", "-e", "HIP_ARCH=gfx908")
+  tensorT:
+    programming_models:
+      hip:
+        run_command: ("./main", "100")
+        compilation_flags: ("-e", 'EXTRA_CFLAGS=-Xoffload-linker \"--emit-relocs\"')
+      sycl:
+        run_command: ("./main", "100")
+        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/llvm/bin/clang++", "-e",
+          "HIP=yes", "-e", "HIP_ARCH=gfx908")
   rowwiseMoments:
     programming_models:
       hip:
@@ -427,12 +436,73 @@ HeCBench:
         run_command: ("./main", "128", "128", "128", "128", "4", "100")
         compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/llvm/bin/clang++", "-e",
           "HIP=yes", "-e", "HIP_ARCH=gfx908")
+  spgeam:
+    programming_models:
+      hip:
+        run_command: ("./main", "20082", "20082", "150616", "1000", "1")
+        compilation_flags: ("-e", 'EXTRA_CFLAGS=-Xoffload-linker \"--emit-relocs\"')
   spgemm:
     programming_models:
       hip:
         run_command: ("./main", "1024", "1024", "1024", "1024", "1000", "1")
         compilation_flags: ("-e", 'EXTRA_CFLAGS=-Xoffload-linker \"--emit-relocs\"')
-      sycl:
-        run_command: ("./main", "1024", "1024", "1024", "1024", "1000", "1")
-        compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/llvm/bin/clang++", "-e",
-          "HIP=yes", "-e", "HIP_ARCH=gfx908")
+InstrCount:
+  benchmarks:
+    - accuracy
+    - ace
+    - adam
+    - burger
+    - maxpool3d
+    - convolutionSeparable
+    - dense-embeding
+    - winograd
+    - atomicReduction
+    - matrix-rotate
+    - eigenvalue
+    - b+tree
+    - floydwarshall
+    - fpc
+    - hwt1d
+    - nn
+    - hmm
+    - inversek2j
+    - heat
+    - streamcluster
+    - stencil3d
+    - spm
+OpcodeHistogram:
+  benchmarks:
+    - accuracy
+    - ace
+    - adam
+    - burger
+    - maxpool3d
+    - convolutionSeparable
+    - dense-embeding
+    - winograd
+    - atomicReduction
+    - matrix-rotate
+    - eigenvalue
+    - b+tree
+    - floydwarshall
+    - fpc
+    - hwt1d
+    - nn
+    - hmm
+    - inversek2j
+    - heat
+    - streamcluster
+    - stencil3d
+    - spm
+LDS:
+  benchmarks:
+    - accuracy
+    - hexciton
+    - rotary
+    - histogram
+    - Zoom
+    - damage
+    - tensorT
+    - rowWiseMoments
+    - spgemm
+    - spgeam

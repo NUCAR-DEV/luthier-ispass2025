@@ -2,7 +2,7 @@
 import os.path
 import subprocess
 import argparse
-from benchmark_cfg import read_yaml_cfg
+from common import read_yaml_cfg
 
 
 def parse_and_validate_args() -> argparse.Namespace:
@@ -21,7 +21,6 @@ def main():
     benchmark_cfg = read_yaml_cfg()["HeCBench"]
     for bench, programming_models in benchmark_cfg.items():
         for programming_model, cfgs in programming_models["programming_models"].items():
-            print(cfgs)
             compile_flags = eval(cfgs["compilation_flags"])
             print(f"{args.action.capitalize()}ing {bench}-{programming_model}")
             benchmark_folder = os.path.join(args.hecbench_dir, "src", f"{bench}-{programming_model}")
