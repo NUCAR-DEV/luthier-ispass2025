@@ -3,16 +3,10 @@
 #===============================================================================
 
 # Compiler can be set below, or via environment variable
-CC        = icpx
+CC        = hipcc
 OPTIMIZE  = yes
 DEBUG     = no
 LAUNCHER  =
-
-GPU       = yes
-CUDA      = no
-CUDA_ARCH = sm_70
-HIP       = no
-HIP_ARCH  = gfx908
 
 #===============================================================================
 # Program name & source code list
@@ -20,58 +14,42 @@ HIP_ARCH  = gfx908
 
 program = main
 
-source = main.cpp
+source = main.cu
 
-obj = $(source:.cpp=.o)
+obj = $(source:.cu=.o)
 
 #===============================================================================
 # Sets Flags
 #===============================================================================
 
 # Standard Flags
-CFLAGS := $(EXTRA_CFLAGS) -std=c++17 -Wall -fsycl -qmkl=parallel \
-          -I../spgemm-cuda
+CFLAGS := $(EXTRA_CFLAGS) -std=c++14 -Wall -I../spgeam-sycl
 
 # Linker Flags
-LDFLAGS = 
-
-ifeq ($(CUDA), yes)
-  CFLAGS += -fsycl-targets=nvptx64-nvidia-cuda \
-            -Xsycl-target-backend --cuda-gpu-arch=$(CUDA_ARCH)
-endif
-
-ifeq ($(HIP), yes)
-  CFLAGS += -fsycl-targets=amdgcn-amd-amdhsa \
-	    -Xsycl-target-backend --offload-arch=$(HIP_ARCH)
-endif
+LDFLAGS = -lhipsparse
 
 # Debug Flags
 ifeq ($(DEBUG),yes)
-  CFLAGS  += -g -DDEBUG
-  LDFLAGS += -g
+  CFLAGS += -g -DDEBUG
+  LDFLAGS  += -g
 endif
 
 # Optimization Flags
 ifeq ($(OPTIMIZE),yes)
   CFLAGS += -O3
 endif
-
-ifeq ($(GPU),yes)
-  CFLAGS +=-DUSE_GPU
-endif
 #===============================================================================
 # Targets to Build
 #===============================================================================
 
-$(program): $(obj)
+$(program): $(obj) Makefile
 	$(CC) $(CFLAGS) $(obj) -o $@ $(LDFLAGS)
 
-%.o: %.cpp ../spgemm-cuda/utils.h 
+%.o: %.cu ../spgeam-sycl/utils.h Makefile
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(program) $(obj)
 
 run: $(program)
-	$(LAUNCHER) ./$(program) 1024 1024 1024 1024 1000 1
-	$(LAUNCHER) ./$(program) 4096 4096 4096 4096 1000 0
+	$(LAUNCHER) ./$(program) 20082 20082 150616 1000 1
