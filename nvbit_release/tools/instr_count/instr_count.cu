@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <unordered_set>
+#include <chrono>
 
 /* every tool needs to include this once */
 #include "nvbit_tool.h"
@@ -66,6 +67,8 @@ int active_from_start = 1;
 bool mangled = false;
 
 static decltype(std::chrono::high_resolution_clock::now()) T1{};
+
+unsigned int kernel_total_time = 0;
 
 /* used to select region of insterest when active from start is off */
 bool active_region = true;
