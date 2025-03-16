@@ -5,7 +5,7 @@ LABEL maintainer=raayaiardakani.m@northeastern.edu
 # Build Arguments
 
 # Version of AMD ROCm used
-ARG ROCM_VERSION=6.2.4
+ARG ROCM_VERSION=6.3.1
 # Version of neovim used
 ARG NVIM_VER=0.10.2
 # Place to clone the source code of LLVM project used for building the Luthier project
@@ -35,10 +35,11 @@ ARG SYCL_GIT_HASH=736534405e9d512c0e2d39f4b6f32573bead30b1
 ARG WORK_DIR=/work
 
 # Install dependencies
-RUN apt-get clean && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y wget ca-certificates curl  \
+RUN apt-get clean && apt-get update --allow-insecure-repositories &&  \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y wget ca-certificates curl  \
     build-essential  software-properties-common cmake g++-12 libstdc++-12-dev rpm libelf-dev libnuma-dev sudo  \
     libdw-dev git python3 python3-pip gnupg unzip ripgrep libelf1 file pkg-config xxd ninja-build zsh git npm  \
-    python3.12-venv nodejs kmod
+    python3.12-venv nodejs kmod bc
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 20 --slave /usr/bin/g++ g++ /usr/bin/g++-12
 
 # ROCm installation
@@ -59,7 +60,7 @@ RUN wget https://github.com/neovim/neovim/releases/download/v${NVIM_VER}/nvim.ap
         cp -r ./squashfs-root/* / && rm -rf ./squashfs-root/
 
 # Install Python packages for Luthier
-RUN pip3 install cxxheaderparser pcpp --break-system-packages
+RUN pip3 install cxxheaderparser pcpp yacs --break-system-packages
 
 # Clone all LLVM-based ROCm projects in the $LUTHIER_LLVM_SRC_DIR directory
 RUN mkdir $LUTHIER_LLVM_SRC_DIR && cd $LUTHIER_LLVM_SRC_DIR &&  \
@@ -74,6 +75,7 @@ RUN mkdir $LUTHIER_LLVM_SRC_DIR/llvm-project/build && cd $LUTHIER_LLVM_SRC_DIR/l
     -DLLVM_ENABLE_PROJECTS="llvm;clang;lld;compiler-rt;clang-tools-extra" \
     -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
     -DLLVM_ENABLE_EXPENSIVE_CHECKS=$LUTHIER_LLVM_ENABLE_EXPENSIVE_CHECKS \
+    -DLLVM_ENABLE_DUMP=ON \
     -DLIBCXX_ENABLE_SHARED=OFF \
     -DLIBCXX_ENABLE_STATIC=ON \
     -DLIBCXX_INSTALL_LIBRARY=OFF \
@@ -127,31 +129,25 @@ RUN cd $LUTHIER_LLVM_SRC_DIR/llvm-project/amd/hipcc/ && mkdir build && cd build 
 
 ## Install SYCL
 RUN cd  && wget https://github.com/intel/llvm/archive/${SYCL_GIT_HASH}.zip && unzip ${SYCL_GIT_HASH}.zip && \
-     rm ${SYCL_GIT_HASH}.zip && mv llvm-${SYCL_GIT_HASH}/ llvm/ && cd llvm && \
-     python3 ./buildbot/configure.py --hip -t release --cmake-gen "Ninja" && cd build \
-     && cmake -DCMAKE_INSTALL_PREFIX=${LLVM_SYCL_INSTALL_DIR} ../llvm/ && ninja install && rm -rf llvm/
+    rm ${SYCL_GIT_HASH}.zip && mv llvm-${SYCL_GIT_HASH}/ llvm/ && cd llvm && \
+    python3 ./buildbot/configure.py --hip -t release --cmake-gen "Ninja" \
+      --cmake-opt="-DCMAKE_INSTALL_PREFIX=/opt/sycl/" && cd build && ninja install && rm -rf llvm/
 
 ## Set the LD_LIBRARY_PATH environment variable
-ENV LD_LIBRARY_PATH="/opt/rocm/lib:${LUTHIER_DEP_DIR}/llvm/lib/:${LUTHIER_DEP_DIR}/lib:${LLVM_SYCL_INSTALL_DIR}/lib/"
+ENV LD_LIBRARY_PATH="/opt/rocm/lib:/opt/rocm/llvm/lib:${LUTHIER_DEP_DIR}/llvm/lib/:${LUTHIER_DEP_DIR}/lib:/opt/sycl/lib/"
 
-## Download NVBit and compile the instruction counter tool
-RUN mkdir ${WORK_DIR} \
-COPY ./nvbit_release ${WORK_DIR}/
-RUN cd ${WORK_DIR}/nvbit_release/tools/instr_count && make
+## Copy over NVBit and compile the instruction counter tool
+COPY ./nvbit_release /nvbit_release
+RUN cd /nvbit_release/tools/instr_count && make
 
 ## Clone the Luthier project and build it
-RUN cd ${WORK_DIR} &&  \
-    wget https://github.com/matinraayai/Luthier/archive/${LUTHIER_GIT_HASH}.zip && \
-    unzip ${LUTHIER_GIT_HASH}.zip && rm ${LUTHIER_GIT_HASH}.zip && mv Luthier-${LUTHIER_GIT_HASH} Luthier/ && \
-    mkdir Luthier/build && cd Luthier/build &&  \
-    cmake -DCMAKE_PREFIX_PATH="/opt/luthier;/opt/rocm" -G Ninja  \
-    -DCMAKE_HIP_COMPILER=/opt/luthier/llvm/bin/clang++ \
+COPY ./Luthier /Luthier
+RUN mkdir Luthier/build && cd Luthier/build &&  \
+    cmake -DCMAKE_PREFIX_PATH="/opt/rocm" -G Ninja  \
+    -DCMAKE_HIP_COMPILER=${LUTHIER_DEP_DIR}/llvm/bin/clang++ \
     -DCMAKE_BUILD_TYPE=Release \
     -DLUTHIER_LLVM_SRC_DIR=${LUTHIER_LLVM_SRC_DIR}/llvm-project \
-    -DLLVM_DIR=/opt/luthier/llvm/lib/cmake/llvm/ -DCMAKE_HIP_FLAGS="-O3" .. && ninja
-
-## Clone HecBench
-RUN cd ${WORK_DIR} && wget https://github.com/zjin-lcf/HeCBench/archive/${HECBENCH_GIT_HASH}.zip && \
-    unzip ${HECBENCH_GIT_HASH}.zip && rm ${HECBENCH_GIT_HASH}.zip && mv HeCBench-${HECBENCH_GIT_HASH} HeCBench
+    -DAMDDeviceLibs_DIR=${LUTHIER_DEP_DIR}/lib/cmake/AMDDeviceLibs \
+    -DLLVM_DIR=${LUTHIER_DEP_DIR}/llvm/lib/cmake/llvm/ -DCMAKE_HIP_FLAGS="-O3" .. && ninja
 
 WORKDIR ${WORK_DIR}
