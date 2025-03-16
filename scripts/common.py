@@ -21,6 +21,10 @@ def capture_subprocess_output(**subprocess_args):
     # Start subprocess
     # bufsize = 1 means output is line buffered
     # universal_newlines = True is required for line buffering
+    dump_stdout_stderr = False
+    if "dump_stdout_stderr" in subprocess_args:
+        dump_stdout_stderr = subprocess_args["dump_stdout_stderr"]
+        del subprocess_args["dump_stdout_stderr"]
     process = subprocess.Popen(**subprocess_args,
                                bufsize=1,
                                stdout=subprocess.PIPE,
@@ -36,14 +40,16 @@ def capture_subprocess_output(**subprocess_args):
         # line to read when this function is called
         line = stream.readline()
         buf_out.write(line)
-        sys.stdout.write(line)
+        if dump_stdout_stderr:
+            sys.stdout.write(line)
 
     def handle_output_err(stream, mask):
         # Because the process' output is line buffered, there's only ever one
         # line to read when this function is called
         line = stream.readline()
         buf_err.write(line)
-        sys.stderr.write(line)
+        if dump_stdout_stderr:
+            sys.stderr.write(line)
 
     # Register callback for an "available for read" event from subprocess' stdout stream
     selector = selectors.DefaultSelector()
