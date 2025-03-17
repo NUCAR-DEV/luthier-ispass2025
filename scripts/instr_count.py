@@ -8,7 +8,7 @@ from common import read_yaml_cfg, capture_subprocess_output
 
 
 def parse_and_validate_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser("HeC benchmark compilation script")
+    parser = argparse.ArgumentParser("Instruction count runner script")
     parser.add_argument("--hecbench_dir", type=str,
                         default="/work/HeCBench",
                         help="location of the HeCBench repo")
@@ -20,7 +20,7 @@ def parse_and_validate_args() -> argparse.Namespace:
                         help="location of the nvbit instruction count tool")
     parser.add_argument("--dump_stdout_stderr", action="store_true",
                         help="dump the stdout and stderr of each experiment to screen")
-    parser.add_argument("--overwrite-results", action="store_true",
+    parser.add_argument("--overwrite_results", action="store_true",
                         help="overwrite results of benchmarks from a previous run")
 
     args = parser.parse_args()
@@ -94,7 +94,7 @@ def main():
             return_code, stdout, stderr = capture_subprocess_output(args=run_flags, cwd=benchmark_folder, env=env_vars,
                                                                     dump_stdout_stderr=args.dump_stdout_stderr)
             if return_code:
-                raise ChildProcessError(f"Failed to run the un-instrumented version of {bench}-{programming_model}.")
+                raise ChildProcessError(f"Failed to run the instrumented version of {bench}-{programming_model}.")
 
             if programming_model == "cuda":
                 instr_count, kernel_time = nvbit_get_instr_count_tool_results(stdout, stderr)

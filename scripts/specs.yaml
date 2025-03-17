@@ -512,7 +512,7 @@ LDS:
     - hexciton
     - rotary
     - histogram
-    - Zoom
+    - zoom
     - damage
     - tensorT
     - rowWiseMoments
