@@ -21,7 +21,7 @@ ARG LUTHIER_LLVM_ENABLE_EXPENSIVE_CHECKS=OFF
 # Whether to enable assertions in the LLVM project used for building Luthier
 ARG LLVM_ENABLE_ASSERTIONS=OFF
 # The git commit hash for the LLVM project used to build Luthier
-ARG LUTHIER_LLVM_GIT_HASH=5e51f7702e2703df95f7a3d57284a1fdef4766b7
+ARG LUTHIER_LLVM_GIT_HASH=408c3d039ea81b2041392ac09d907e9144830ea1
 # The git commit hash for the Luthier project
 ARG LUTHIER_GIT_HASH=b21207a770c33f4da3846f5c384b1e0a74aa3fcc
 # The git commit hash for HeCBench
@@ -72,7 +72,7 @@ RUN mkdir $LUTHIER_LLVM_SRC_DIR/llvm-project/build && cd $LUTHIER_LLVM_SRC_DIR/l
     -DCMAKE_INSTALL_PREFIX=${LUTHIER_DEP_DIR}/llvm/  \
     -DCMAKE_BUILD_TYPE=$LUTHIER_LLVM_BUILD_TYPE \
     -DLLVM_TARGETS_TO_BUILD="AMDGPU;X86"  \
-    -DLLVM_ENABLE_PROJECTS="llvm;clang;lld;compiler-rt;clang-tools-extra" \
+    -DLLVM_ENABLE_PROJECTS="llvm;clang;lld;compiler-rt;clang-tools-extra;openmp" \
     -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
     -DLLVM_ENABLE_EXPENSIVE_CHECKS=$LUTHIER_LLVM_ENABLE_EXPENSIVE_CHECKS \
     -DLLVM_ENABLE_DUMP=ON \
@@ -110,7 +110,14 @@ RUN mkdir $LUTHIER_LLVM_SRC_DIR/llvm-project/build && cd $LUTHIER_LLVM_SRC_DIR/l
     -DCMAKE_SKIP_BUILD_RPATH=TRUE \
     -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
     -DFLANG_INCLUDE_DOCS=OFF \
-    ../llvm && LD_LIBRARY_PATH=$LUTHIER_LLVM_SRC_DIR/llvm-project/build/lib ninja install &&  \
+    -DLIBOMP_HAVE_QUAD_PRECISION=OFF \
+    ../llvm && LD_LIBRARY_PATH=$LUTHIER_LLVM_SRC_DIR/llvm-project/build/lib ninja install
+## Install OpenMP offloading for AMD GPUs
+RUN cd /src/llvm-project/build && cmake -DLIBOMP_USE_QUAD_PRECISION=OFF  \
+    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind;openmp;offload" \
+    -DLLVM_ENABLE_PROJECTS="llvm;clang;lld;compiler-rt;clang-tools-extra;" \
+    -DCMAKE_BUILD_TYPE=$LUTHIER_LLVM_BUILD_TYPE -DLLVM_TARGETS_TO_BUILD="AMDGPU;X86" ../llvm &&  \
+    LD_LIBRARY_PATH=$LUTHIER_LLVM_SRC_DIR/llvm-project/build/lib ninja install && \
     rm -rf $LUTHIER_LLVM_SRC_DIR/llvm-project/build
 
 ## Install ROCm Device Libs for Luthier
@@ -127,6 +134,9 @@ RUN cd $LUTHIER_LLVM_SRC_DIR/llvm-project/amd/hipcc/ && mkdir build && cd build 
     .. && LD_LIBRARY_PATH=${LUTHIER_DEP_DIR}/llvm/lib/ ninja install && \
     rm -rf $LUTHIER_LLVM_SRC_DIR/llvm-project/amd/hipcc/build/
 
+RUN ln -s ${LUTHIER_DEP_DIR}/llvm/ ${LUTHIER_DEP_DIR}/lib/llvm && \
+    ln -s /opt/rocm/bin/rocm_agent_enumerator ${LUTHIER_DEP_DIR}/bin/rocm_agent_enumerator
+
 ## Install SYCL
 RUN cd  && wget https://github.com/intel/llvm/archive/${SYCL_GIT_HASH}.zip && unzip ${SYCL_GIT_HASH}.zip && \
     rm ${SYCL_GIT_HASH}.zip && mv llvm-${SYCL_GIT_HASH}/ llvm/ && cd llvm && \
@@ -134,7 +144,7 @@ RUN cd  && wget https://github.com/intel/llvm/archive/${SYCL_GIT_HASH}.zip && un
       --cmake-opt="-DCMAKE_INSTALL_PREFIX=/opt/sycl/" && cd build && ninja install && rm -rf llvm/
 
 ## Set the LD_LIBRARY_PATH environment variable
-ENV LD_LIBRARY_PATH="/opt/rocm/lib:/opt/rocm/llvm/lib:${LUTHIER_DEP_DIR}/llvm/lib/:${LUTHIER_DEP_DIR}/lib:/opt/sycl/lib/"
+ENV LD_LIBRARY_PATH="/opt/rocm/lib:${LUTHIER_DEP_DIR}/llvm/lib/:${LUTHIER_DEP_DIR}/lib:/opt/sycl/lib/"
 
 ## Copy over NVBit and compile the instruction counter tool
 COPY ./nvbit_release /nvbit_release
