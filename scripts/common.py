@@ -69,13 +69,15 @@ def capture_subprocess_output(**subprocess_args):
         if not line:
             break
         buf_out.write(line)
-        sys.stdout.write(line)
+        if dump_stdout_stderr:
+            sys.stdout.write(line)
     while True:
         line = process.stderr.readline()
         if not line:
             break
         buf_err.write(line)
-        sys.stderr.write(line)
+        if dump_stdout_stderr:
+            sys.stderr.write(line)
 
     # Get process return code
     return_code = process.wait()
