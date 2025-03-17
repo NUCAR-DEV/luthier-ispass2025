@@ -121,35 +121,35 @@ HeCBench:
   winograd:
     programming_models:
       cuda:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ()
       hip:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", 'EXTRA_CFLAGS=-Xoffload-linker \"--emit-relocs\"', "-e", "CC=/opt/luthier/bin/hipcc")
       omp:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", "CC=/opt/luthier/llvm/bin/clang++", "-e",
           'EXTRA_CFLAGS=-Xoffload-linker --emit-relocs -O3', "-e", "ARCH=gfx908", "-f",
           "Makefile.aomp")
       sycl:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
           "HIP=yes", "-e", "HIP_ARCH=gfx908")
   atomicReduction:
     programming_models:
       cuda:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ()
       hip:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", 'EXTRA_CFLAGS=-Xoffload-linker \"--emit-relocs\"', "-e", "CC=/opt/luthier/bin/hipcc")
       omp:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", "CC=/opt/luthier/llvm/bin/clang++", "-e",
           'EXTRA_CFLAGS=-Xoffload-linker --emit-relocs -O3', "-e", "ARCH=gfx908", "-f",
           "Makefile.aomp")
       sycl:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
           "HIP=yes", "-e", "HIP_ARCH=gfx908")
   matrix-rotate:
@@ -274,18 +274,18 @@ HeCBench:
   hmm:
     programming_models:
       cuda:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ()
       hip:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", 'EXTRA_CFLAGS=-Xoffload-linker \"--emit-relocs\"', "-e", "CC=/opt/luthier/bin/hipcc")
       omp:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", "CC=/opt/luthier/llvm/bin/clang++", "-e",
           'EXTRA_CFLAGS=-Xoffload-linker --emit-relocs -O3', "-e", "ARCH=gfx908", "-f",
           "Makefile.aomp")
       sycl:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
           "HIP=yes", "-e", "HIP_ARCH=gfx908")
   inversek2j:
@@ -336,7 +336,7 @@ HeCBench:
           'EXTRA_CFLAGS=-Xoffload-linker --emit-relocs -O3', "-e", "ARCH=gfx908", "-f",
           "Makefile.aomp")
       sycl:
-        run_command: ("./streamcluster", "10", "20", "256", "65536", "65536", "1000", "none", "output.txt", "1")
+        run_command: ("./main", "10", "20", "256", "65536", "65536", "1000", "none", "output.txt", "1")
         compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
           "HIP=yes", "-e", "HIP_ARCH=gfx908")
   stencil3d:
@@ -376,10 +376,10 @@ HeCBench:
   hexciton:
     programming_models:
       hip:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", 'EXTRA_CFLAGS=-Xoffload-linker \"--emit-relocs\"', "-e", "CC=/opt/luthier/bin/hipcc")
       sycl:
-        run_command: ("./main")
+        run_command: ("./main",)
         compilation_flags: ("-e", "GCC_TOOLCHAIN=/usr/", "-e", "CC=/opt/sycl/bin/clang++", "-e",
           "HIP=yes", "-e", "HIP_ARCH=gfx908")
   rotary:
