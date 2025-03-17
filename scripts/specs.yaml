@@ -515,6 +515,6 @@ LDS:
     - zoom
     - damage
     - tensorT
-    - rowWiseMoments
+    - rowwiseMoments
     - spgemm
     - spgeam
