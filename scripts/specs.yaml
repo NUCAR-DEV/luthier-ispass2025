@@ -282,7 +282,7 @@ HeCBench:
       omp:
         run_command: ("./main",)
         compilation_flags: ("-e", "CC=/opt/luthier/llvm/bin/clang++", "-e",
-          'EXTRA_CFLAGS=-Xoffload-linker --emit-relocs -O3', "-e", "ARCH=gfx908", "-f",
+          'EXTRA_CFLAGS=-O3', "-e", "ARCH=gfx908", "-f",
           "Makefile.aomp")
       sycl:
         run_command: ("./main",)
