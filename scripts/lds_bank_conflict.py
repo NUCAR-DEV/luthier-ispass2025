@@ -50,6 +50,8 @@ def main():
     benchmark_cfg = read_yaml_cfg()
     for bench in benchmark_cfg["LDS"]["benchmarks"]:
         for programming_model in benchmark_cfg["LDS"]["programming_models"]:
+            if programming_model not in  benchmark_cfg["HeCBench"][bench]["programming_models"]:
+                continue
             cfgs = benchmark_cfg["HeCBench"][bench]["programming_models"][programming_model]
             run_flags = eval(cfgs["run_command"])
             benchmark_folder = os.path.join(args.hecbench_dir, "src", f"{bench}-{programming_model}")
