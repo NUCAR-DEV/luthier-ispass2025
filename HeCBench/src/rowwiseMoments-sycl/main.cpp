@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
   for (int i = 0; i < repeat; i++) {
     q.submit([&](sycl::handler &cgh) {
       cgh.parallel_for(sycl::nd_range<1>(gws, lws),
-          [=](sycl::nd_item<1> item) [[intel::reqd_sub_group_size(32)]] {
+          [=](sycl::nd_item<1> item) [[intel::reqd_sub_group_size(64)]] {
         RowwiseMomentsKernel<float>(D * H * W, eps, d_X, d_mean, d_rstd, item);
       });
     });
