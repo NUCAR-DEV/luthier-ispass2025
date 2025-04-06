@@ -23,7 +23,7 @@ ARG LLVM_ENABLE_ASSERTIONS=OFF
 # The git commit hash for the LLVM project used to build Luthier
 ARG LUTHIER_LLVM_GIT_HASH=408c3d039ea81b2041392ac09d907e9144830ea1
 # The git commit hash for the Luthier project
-ARG LUTHIER_GIT_HASH=b21207a770c33f4da3846f5c384b1e0a74aa3fcc
+ARG LUTHIER_GIT_HASH=6a1ae19b62ea9d4b021e4555c55a02b5bd1a885a
 # The git commit hash for HeCBench
 ARG HECBENCH_GIT_HASH=b59cdcc3755c3a0cd39b4b9925ac5aa76b1d1171
 # Intel LLVM SYCL installation directory
