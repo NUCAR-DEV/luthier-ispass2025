@@ -144,7 +144,7 @@ RUN cd  && wget https://github.com/intel/llvm/archive/${SYCL_GIT_HASH}.zip && un
       --cmake-opt="-DCMAKE_INSTALL_PREFIX=/opt/sycl/" && cd build && ninja install && rm -rf llvm/
 
 ## Set the LD_LIBRARY_PATH environment variable
-ENV LD_LIBRARY_PATH="/opt/rocm/lib:${LUTHIER_DEP_DIR}/llvm/lib/:${LUTHIER_DEP_DIR}/lib:/opt/sycl/lib/"
+ENV LD_LIBRARY_PATH="/opt/rocm/lib:${LUTHIER_DEP_DIR}/llvm/lib/:${LUTHIER_DEP_DIR}/lib:/opt/sycl/lib/:/usr/local/cuda-12.8/compat/"
 
 ## Copy over NVBit and compile the instruction counter tool
 COPY ./nvbit_release /nvbit_release
